@@ -3,20 +3,28 @@ import time
 
 OFFSET_FLOW = -24576 # [-]
 SCALEFACTOR_FLOW = 170 # [slm^-1]
-
 OFFSET_TEMP = 0 # [-]
 SCALEFACTOR_TEMP = 200 # [°C^-1]
 
-# Single transaction writing two bytes then read two at address 80
-# write = i2c_msg.write(0x28, [40, 50])
+
+
+
+# SETUP
+msg_start = i2c_msg.write(0x28, [0x36, 0x08])
 msg = i2c_msg.read(0x28, 9)
+msg_stop = i2c_msg.write(0x28, [0x3F, 0xF9])
 
 bus = SMBus(1)
+bus.i2c_rdwr(msg_start)
+time.sleep(1)
 
 
-while True:
+
+for i in range(10):
     bus.i2c_rdwr(msg)
     data = list(msg)
+
+    # JUST SOME CONVERSION FROM HERE ON
     flow_bytes = data[0:2]
     flow_bytes_converted = bytes(flow_bytes)
     flow_raw = int.from_bytes(flow_bytes_converted, byteorder='big', signed=True)
@@ -29,9 +37,12 @@ while True:
     print("temp_raw: ", temp_raw)
     temp = (temp_raw-OFFSET_TEMP)/SCALEFACTOR_TEMP
     print("temp: ", temp)
-    time.sleep(0.1)
+    time.sleep(0.2)
+    x=+1
 
+bus.i2c_rdwr(msg_stop)
 
+#bus.write_byte_data(0x28, 0x36, 0x08)
 
 # # 1: Convert message content to list
 # msg = i2c_msg.write(60, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
