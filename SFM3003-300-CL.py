@@ -15,12 +15,13 @@ msg = i2c_msg.read(0x28, 9)
 msg_stop = i2c_msg.write(0x28, [0x3F, 0xF9])
 
 bus = SMBus(1)
+bus.i2c_rdwr(msg_stop)
+time.sleep(0.5)
 bus.i2c_rdwr(msg_start)
-time.sleep(1)
+time.sleep(0.5)
 
-
-
-for i in range(10):
+for i in range(100):
+    
     bus.i2c_rdwr(msg)
     data = list(msg)
 
@@ -35,10 +36,11 @@ for i in range(10):
     temp_bytes_converted = bytes(temp_bytes)
     temp_raw = int.from_bytes(temp_bytes_converted, byteorder='big', signed=True)
     print("temp_raw: ", temp_raw)
-    temp = (temp_raw-OFFSET_TEMP)/SCALEFACTOR_TEMP
+    temp = float((temp_raw-OFFSET_TEMP)/SCALEFACTOR_TEMP)
     print("temp: ", temp)
-    time.sleep(0.2)
+    time.sleep(2)
     x=+1
+
 
 bus.i2c_rdwr(msg_stop)
 

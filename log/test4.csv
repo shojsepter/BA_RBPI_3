@@ -1,0 +1,34 @@
+
+TEMPERATURE_IN,TEMPERATURE_OUT,PRESSURE_IN,PRESSURE_OUT,HUMIDITY_IN,HUMIDITY_OUT,AIRFLOW_OUT,CO2_OUT
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+column1,column2,column3
+TEMPERATURE_IN,TEMPERATURE_OUT,PRESSURE_IN,PRESSURE_OUT,HUMIDITY_IN,HUMIDITY_OUT,AIRFLOW_OUT,CO2_OUT
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+<built-in function ctime>,column2,column3
+TEMPERATURE_IN,TEMPERATURE_OUT,PRESSURE_IN,PRESSURE_OUT,HUMIDITY_IN,HUMIDITY_OUT,AIRFLOW_OUT,CO2_OUT
+Wed Aug 24 17:38:01 2022,column2,column3
+Wed Aug 24 17:38:01 2022,column2,column3
+Wed Aug 24 17:38:01 2022,column2,column3
+Wed Aug 24 17:38:01 2022,column2,column3
+Wed Aug 24 17:38:01 2022,column2,column3
+Wed Aug 24 17:38:01 2022,column2,column3
+Wed Aug 24 17:38:02 2022,column2,column3
+Wed Aug 24 17:38:02 2022,column2,column3
+Wed Aug 24 17:38:02 2022,column2,column3
+Wed Aug 24 17:38:02 2022,column2,column3
