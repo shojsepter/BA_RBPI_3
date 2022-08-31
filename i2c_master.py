@@ -8,7 +8,7 @@ import struct
 from typing import List
 
 # Declare Filename
-EXPERIMENT_NOMENCLATURE = 'test5'
+EXPERIMENT_NOMENCLATURE = 'test6'
 # Declare CSV Header
 CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_OUT_BME', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'HUMIDITY_IN_BME', 'HUMIDITY_OUT_BME', 'AIRFLOW_OUT_SFM', 'CO2_OUT_SCD']
 
@@ -75,14 +75,14 @@ bus = SMBus(1)
 bus.i2c_rdwr(SCD30_START_MEASUREMENT) # measurement Interval is 2s!!!
 
 ########                 SFM3003300CL                    ########
-SFM3003300CL_START_MEASUREMENT = i2c_msg.write(0x28, [0x36, 0x08])
-SFM3003300CL_READ_MEASUREMENT = i2c_msg.read(0x28, 9)
-SFM3003300CL_STOP_MEASUREMENT = i2c_msg.write(0x28, [0x3F, 0xF9])
+#SFM3003300CL_START_MEASUREMENT = i2c_msg.write(0x28, [0x36, 0x08])
+#SFM3003300CL_READ_MEASUREMENT = i2c_msg.read(0x28, 9)
+#SFM3003300CL_STOP_MEASUREMENT = i2c_msg.write(0x28, [0x3F, 0xF9])
 
 # prevent Error in case sensor is already started -> stop and start
-bus.i2c_rdwr(SFM3003300CL_STOP_MEASUREMENT)
-time.sleep(0.5)
-bus.i2c_rdwr(SFM3003300CL_START_MEASUREMENT)
+#bus.i2c_rdwr(SFM3003300CL_STOP_MEASUREMENT)
+#time.sleep(0.5)
+#bus.i2c_rdwr(SFM3003300CL_START_MEASUREMENT)
 
 # wait for sensors to wake up
 time.sleep(2)
@@ -95,8 +95,8 @@ while True:
     bus.i2c_rdwr(SCD30_READ_MEASUREMENT)
     SCD30_data = list(SCD30_READ_MEASUREMENT)
 
-    bus.i2c_rdwr(SFM3003300CL_READ_MEASUREMENT)
-    SFM3003300CL_data = list(SFM3003300CL_READ_MEASUREMENT)
+    #bus.i2c_rdwr(SFM3003300CL_READ_MEASUREMENT)
+    #SFM3003300CL_data = list(SFM3003300CL_READ_MEASUREMENT)
 
     SCD30_CO2_bytes = list(SCD30_data[i] for i in [0, 1, 3, 4])
     SCD30_CO2 = SCD30_conversion(SCD30_CO2_bytes)
@@ -105,17 +105,17 @@ while True:
     SCD30_Hum_bytes = list(SCD30_data[i] for i in [12, 13, 15, 16])
     SCD30_Hum = SCD30_conversion(SCD30_Hum_bytes)
 
-    SFM3003300CL_bytes = list(SFM3003300CL_data[i] for i in [0, 1, 3, 4])
-    SFM3003300CL_flow, SFM3003300CL_temp = SFM3003300CL_conversion(SFM3003300CL_bytes)
+    #SFM3003300CL_bytes = list(SFM3003300CL_data[i] for i in [0, 1, 3, 4])
+    #SFM3003300CL_flow, SFM3003300CL_temp = SFM3003300CL_conversion(SFM3003300CL_bytes)
 
 
     with open('/home/shojsepter/dev/log/%s.csv' %EXPERIMENT_NOMENCLATURE , 'a') as csvfile:
         # create the csv writer
         writer = csv.writer(csvfile, delimiter=',')
         # write a row to the csv file
-        # Compare with header: CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_OUT_BME', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'HUMIDITY_IN_BME', 'HUMIDITY_OUT_BME', 'AIRFLOW_OUT_SFM', 'CO2_OUT_SCD']
-        writer.writerow([time.ctime(), "%0.1f"%bme680_IN.temperature, "%0.1f"%bme680_OUT.temperature,  "%0.3f"%bme680_IN.pressure, "%0.3f"%bme680_OUT.pressure, "%0.1f %%"%bme680_IN.humidity, "%0.1f %%"%bme680_OUT.humidity, SFM3003300CL_flow, SCD30_CO2])
+        # Compare with header: CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_OUT_BME', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'HUMIDITY_IN_BME', 'HUMIDITY_OUT_BME','HUMIDITY_OUT_SCD', 'AIRFLOW_OUT_SFM', 'CO2_OUT_SCD']
+        writer.writerow([time.ctime(), "%0.1f"%bme680_IN.temperature, "%0.1f"%bme680_OUT.temperature,  "%0.3f"%bme680_IN.pressure, "%0.3f"%bme680_OUT.pressure, "%0.1f %%"%bme680_IN.humidity, "%0.1f %%"%bme680_OUT.humidity, SCD30_Hum, "SFM3003300CL_flow", SCD30_CO2])
         print("wrote to file...")
-        time.sleep(2)
+        time.sleep(5)
 
 
