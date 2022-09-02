@@ -116,6 +116,6 @@ while True:
         # Compare with header: CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_OUT_BME', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'HUMIDITY_IN_BME', 'HUMIDITY_OUT_BME','HUMIDITY_OUT_SCD', 'AIRFLOW_OUT_SFM', 'CO2_OUT_SCD']
         writer.writerow([time.ctime(), "%0.1f"%bme680_IN.temperature, "%0.1f"%bme680_OUT.temperature,  "%0.3f"%bme680_IN.pressure, "%0.3f"%bme680_OUT.pressure, "%0.1f %%"%bme680_IN.humidity, "%0.1f %%"%bme680_OUT.humidity, SCD30_Hum, "SFM3003300CL_flow", SCD30_CO2])
         print("wrote to file...")
-        time.sleep(5)
+        time.sleep(60)
 
 
