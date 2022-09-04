@@ -6,11 +6,14 @@ import adafruit_bme680
 from smbus2 import SMBus, i2c_msg
 import struct
 from typing import List
+import mybme680
+import TCA9548A
+import DS18B20
 
 # Declare Filename
-EXPERIMENT_NOMENCLATURE = 'test6'
+EXPERIMENT_NOMENCLATURE = 'test_final_setup1'
 # Declare CSV Header
-CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_OUT_BME', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'HUMIDITY_IN_BME', 'HUMIDITY_OUT_BME', 'AIRFLOW_OUT_SFM', 'CO2_OUT_SCD']
+CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_IN_SCD', 'TEMPERATURE_IN_DS', 'TEMPERATURE_OUT_BME', 'TEMPERATURE_OUT_SCD', 'TEMPERATURE_OUT_DS', 'TEMPERATURE_OUT_SFM', 'TEMPERATURE_C_BME', 'TEMPERATURE_C1_DS', 'TEMPERATURE_C2_DS', 'TEMPERATURE_C3_DS', 'HUMIDITY_IN_BME', 'HUMIDITY_IN_SCD', 'HUMIDITY_OUT_BME', 'HUMIDITY_OUT_SCD', 'CO2_IN_SCD', 'CO2_OUT_SCD', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'PRESSURE_C_BME', 'AIRFLOW_OUT_SFM']
 
 def SCD30_conversion(data: List[int]) -> tuple[int, int, float] :
 
@@ -56,66 +59,93 @@ with open('/home/shojsepter/dev/log/%s.csv' %EXPERIMENT_NOMENCLATURE , 'a') as c
 ########                                                 ########
 
 
-########                     BME680                      ########
-# Create object using adadfruit library and I2C port
-i2c = I2C(board.SCL, board.SDA)
-bme680_IN = adafruit_bme680.Adafruit_BME680_I2C(i2c, address=0x76, debug=False)
-bme680_OUT = adafruit_bme680.Adafruit_BME680_I2C(i2c, address=0x77, debug=False)
-# change this to match the location's pressure (hPa) at sea level
-bme680_IN.sea_level_pressure = 1013.25
-bme680_OUT.sea_level_pressure = 1013.25
-
 ########                     SCD30                       ########
 SCD30_START_MEASUREMENT = i2c_msg.write(0x61, [0x00, 0x10, 0x00, 0x00, 0x81])
 SCD30_START_READ_MEASUREMENT = i2c_msg.write(0x61, [0x03, 0x00])
 SCD30_READ_MEASUREMENT = i2c_msg.read(0x61, 18)
 SCD30_STOP_MEASUREMENT = i2c_msg.write(0x28, [0x3F, 0xF9])
 
+TCA9548A.I2C_setup(0x70, 1)
+time.sleep(0.01)
 bus = SMBus(1)
 bus.i2c_rdwr(SCD30_START_MEASUREMENT) # measurement Interval is 2s!!!
 
+TCA9548A.I2C_setup(0x70, 2)
+time.sleep(0.01)
+bus = SMBus(1)
+bus.i2c_rdwr(SCD30_START_MEASUREMENT) # measurement Interval is 2s!!!
+
+
 ########                 SFM3003300CL                    ########
-#SFM3003300CL_START_MEASUREMENT = i2c_msg.write(0x28, [0x36, 0x08])
-#SFM3003300CL_READ_MEASUREMENT = i2c_msg.read(0x28, 9)
-#SFM3003300CL_STOP_MEASUREMENT = i2c_msg.write(0x28, [0x3F, 0xF9])
+SFM3003300CL_START_MEASUREMENT = i2c_msg.write(0x28, [0x36, 0x08])
+SFM3003300CL_READ_MEASUREMENT = i2c_msg.read(0x28, 9)
+SFM3003300CL_STOP_MEASUREMENT = i2c_msg.write(0x28, [0x3F, 0xF9])
 
 # prevent Error in case sensor is already started -> stop and start
-#bus.i2c_rdwr(SFM3003300CL_STOP_MEASUREMENT)
-#time.sleep(0.5)
-#bus.i2c_rdwr(SFM3003300CL_START_MEASUREMENT)
+bus.i2c_rdwr(SFM3003300CL_STOP_MEASUREMENT)
+time.sleep(0.5)
+bus.i2c_rdwr(SFM3003300CL_START_MEASUREMENT)
 
 # wait for sensors to wake up
 time.sleep(2)
 
 while True:
 
+    TCA9548A.I2C_setup(0x70, 1) #IN
+    time.sleep(0.01)
     # Get data from SCD30 and do calculations later for less latency between measurements
     bus.i2c_rdwr(SCD30_START_READ_MEASUREMENT)
     time.sleep(0.01)
     bus.i2c_rdwr(SCD30_READ_MEASUREMENT)
-    SCD30_data = list(SCD30_READ_MEASUREMENT)
+    SCD30_IN_data = list(SCD30_READ_MEASUREMENT)
 
-    #bus.i2c_rdwr(SFM3003300CL_READ_MEASUREMENT)
-    #SFM3003300CL_data = list(SFM3003300CL_READ_MEASUREMENT)
+    TCA9548A.I2C_setup(0x70, 2) #OUT
+    time.sleep(0.01)
+    # Get data from SCD30 and do calculations later for less latency between measurements
+    bus.i2c_rdwr(SCD30_START_READ_MEASUREMENT)
+    time.sleep(0.01)
+    bus.i2c_rdwr(SCD30_READ_MEASUREMENT)
+    SCD30_OUT_data = list(SCD30_READ_MEASUREMENT)
 
-    SCD30_CO2_bytes = list(SCD30_data[i] for i in [0, 1, 3, 4])
-    SCD30_CO2 = SCD30_conversion(SCD30_CO2_bytes)
-    SCD30_Temp_bytes = list(SCD30_data[i] for i in [6, 7, 9, 10])
-    SCD30_Temp = SCD30_conversion(SCD30_Temp_bytes)
-    SCD30_Hum_bytes = list(SCD30_data[i] for i in [12, 13, 15, 16])
-    SCD30_Hum = SCD30_conversion(SCD30_Hum_bytes)
+    bus.i2c_rdwr(SFM3003300CL_READ_MEASUREMENT)
+    SFM3003300CL_data = list(SFM3003300CL_READ_MEASUREMENT)
 
-    #SFM3003300CL_bytes = list(SFM3003300CL_data[i] for i in [0, 1, 3, 4])
-    #SFM3003300CL_flow, SFM3003300CL_temp = SFM3003300CL_conversion(SFM3003300CL_bytes)
+    SCD30_CO2_bytes = list(SCD30_IN_data[i] for i in [0, 1, 3, 4])
+    SCD30_IN_CO2 = SCD30_conversion(SCD30_CO2_bytes)
+    SCD30_Temp_bytes = list(SCD30_IN_data[i] for i in [6, 7, 9, 10])
+    SCD30_IN_Temp = SCD30_conversion(SCD30_Temp_bytes)
+    SCD30_Hum_bytes = list(SCD30_IN_data[i] for i in [12, 13, 15, 16])
+    SCD30_IN_Hum = SCD30_conversion(SCD30_Hum_bytes)
+
+    SCD30_CO2_bytes = list(SCD30_OUT_data[i] for i in [0, 1, 3, 4])
+    SCD30_OUT_CO2 = SCD30_conversion(SCD30_CO2_bytes)
+    SCD30_Temp_bytes = list(SCD30_OUT_data[i] for i in [6, 7, 9, 10])
+    SCD30_OUT_Temp = SCD30_conversion(SCD30_Temp_bytes)
+    SCD30_Hum_bytes = list(SCD30_OUT_data[i] for i in [12, 13, 15, 16])
+    SCD30_OUT_Hum = SCD30_conversion(SCD30_Hum_bytes)
+
+    SFM3003300CL_bytes = list(SFM3003300CL_data[i] for i in [0, 1, 3, 4])
+    SFM3003300CL_flow, SFM3003300CL_temp = SFM3003300CL_conversion(SFM3003300CL_bytes)
+
+    bme680_IN_t, bme680_IN_p, bme680_IN_h = mybme680.get_bme680_values("BME_IN")
+    bme680_OUT_t, bme680_OUT_p, bme680_OUT_h = mybme680.get_bme680_values("BME_OUT")
+    bme680_C_t, bme680_C_p, bme680_C_h = mybme680.get_bme680_values("BME_CHAMBER")
+
+    TEMPERATURE_IN_DS = DS18B20.read_sensor("28-00000de73a3c")
+    TEMPERATURE_OUT_DS = DS18B20.read_sensor("28-00000de72894")
+    TEMPERATURE_C1_DS = DS18B20.read_sensor("28-00000de7c112")
+    TEMPERATURE_C2_DS = DS18B20.read_sensor("28-00000de78429")
+    TEMPERATURE_C3_DS = DS18B20.read_sensor("28-00000de720d4")
 
 
     with open('/home/shojsepter/dev/log/%s.csv' %EXPERIMENT_NOMENCLATURE , 'a') as csvfile:
         # create the csv writer
         writer = csv.writer(csvfile, delimiter=',')
         # write a row to the csv file
-        # Compare with header: CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_OUT_BME', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'HUMIDITY_IN_BME', 'HUMIDITY_OUT_BME','HUMIDITY_OUT_SCD', 'AIRFLOW_OUT_SFM', 'CO2_OUT_SCD']
-        writer.writerow([time.ctime(), "%0.1f"%bme680_IN.temperature, "%0.1f"%bme680_OUT.temperature,  "%0.3f"%bme680_IN.pressure, "%0.3f"%bme680_OUT.pressure, "%0.1f %%"%bme680_IN.humidity, "%0.1f %%"%bme680_OUT.humidity, SCD30_Hum, "SFM3003300CL_flow", SCD30_CO2])
+        # CSV_HEADER = ['TIME', 'TEMPERATURE_IN_BME', 'TEMPERATURE_IN_SCD', 'TEMPERATURE_IN_DS', 'TEMPERATURE_OUT_BME', 'TEMPERATURE_OUT_SCD', 'TEMPERATURE_OUT_DS', 'TEMPERATURE_OUT_SFM', 'TEMPERATURE_C_BME', 'TEMPERATURE_C1_DS', 'TEMPERATURE_C2_DS', 'TEMPERATURE_C3_DS', 'HUMIDITY_IN_BME', 'HUMIDITY_IN_SCD', 'HUMIDITY_OUT_BME', 'HUMIDITY_OUT_SCD', 'CO2_IN_SCD', 'CO2_OUT_SCD', 'PRESSURE_IN_BME ', 'PRESSURE_OUT_BME', 'PRESSURE_C_BME', 'AIRFLOW_OUT_SFM']
+        writer.writerow([time.ctime(), bme680_IN_t, SCD30_IN_Temp, TEMPERATURE_IN_DS, bme680_OUT_t, SCD30_OUT_Temp, TEMPERATURE_OUT_DS, SFM3003300CL_temp, bme680_C_t, TEMPERATURE_C1_DS, TEMPERATURE_C2_DS, TEMPERATURE_C3_DS, bme680_IN_h, SCD30_IN_Hum, bme680_OUT_h, SCD30_OUT_Hum, SCD30_IN_CO2, SCD30_OUT_CO2, bme680_IN_p, bme680_OUT_p, bme680_C_p, SFM3003300CL_flow])
         print("wrote to file...")
-        time.sleep(60)
+    
+    time.sleep(5)
 
 
