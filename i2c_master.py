@@ -128,7 +128,7 @@ while True:
     SFM3003300CL_flow, SFM3003300CL_temp = SFM3003300CL_conversion(SFM3003300CL_bytes)
 
     bme680_IN_t, bme680_IN_p, bme680_IN_h = mybme680.get_bme680_values("BME_IN")
-    bme680_OUT_t, bme680_OUT_p, bme680_OUT_h = mybme680.get_bme680_values("BME_OUT")
+    bme680_OUT_t, bme680_OUT_p, bme680_OUT_h = [0,0,0] #mybme680.get_bme680_values("BME_OUT")
     bme680_C_t, bme680_C_p, bme680_C_h = mybme680.get_bme680_values("BME_CHAMBER")
 
     TEMPERATURE_IN_DS = DS18B20.read_sensor("28-00000de73a3c")
