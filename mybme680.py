@@ -26,4 +26,4 @@ def get_bme680_values(BME):
         bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c, address=0x76, debug=False)
         time.sleep(2)
 
-    return "%0.1f"%bme680.temperature, "%0.3f"%bme680.pressure, "%0.1f %%"%bme680.humidity
+    return "%0.1f"%bme680.temperature, "%0.3f"%bme680.pressure, "%0.1f %%"%bme680.humidity,  "%d ohm"%bme680.gas
